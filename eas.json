@@ -1,0 +1,17 @@
+{
+  "cli": { 
+    "version": "16.19.1", 
+    "appVersionSource": "remote" 
+  },
+  "build": {
+    "production": {
+      "credentialsSource": "remote",
+      "env": { 
+        "EXPO_NO_PROMPT": "1", 
+        "EXPO_NON_INTERACTIVE": "1", 
+        "CI": "1" 
+      },
+      "node": "18.20.3"
+    }
+  }
+}

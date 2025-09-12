@@ -1,0 +1,30 @@
+{
+  "profiles": {
+    "id": "string",
+    "username": "string",
+    "email": "string",
+    "display_name": "string",
+    "onboarding_complete": "boolean",
+    "weight": "number",
+    "height": "number",
+    "age": "number",
+    "gender": "string",
+    "target_weight": "number",
+    "target_date": "string",
+    "activity_level": "number",
+    "weight_loss_speed": "number",
+    "diet_exercise_ratio": "number",
+    "allergies": "string",
+    "created_at": "string",
+    "updated_at": "string"
+  },
+  "entitlements": {
+    "id": "string",
+    "user_id": "string",
+    "product_id": "string",
+    "provider": "string",
+    "active": "boolean",
+    "expires_at": "string",
+    "last_synced_at": "string"
+  }
+}
