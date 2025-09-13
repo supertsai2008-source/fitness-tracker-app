@@ -12,10 +12,7 @@
         "CI": "1",
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       },
-      "node": "18.20.3",
-      "npm": {
-        "cache": false
-      }
+      "node": "18.20.3"
     }
   }
 }
