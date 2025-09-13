@@ -1,4 +1,4 @@
-import { init } from '@instantdb/react-native';
+// import { init } from '@instantdb/react-native';
 
 // Define the schema for our collections
 const schema = {
@@ -33,10 +33,22 @@ const schema = {
 };
 
 // Initialize InstantDB client with the provided app ID and schema
-export const db = init({ 
-  appId: "d10db7a8-30ac-4fdb-82a1-87cc0e993acd",
-  schema
-});
+// export const db = init({ 
+//   appId: "d10db7a8-30ac-4fdb-82a1-87cc0e993acd",
+//   schema
+// });
+
+// Temporary mock for build testing
+export const db = {
+  auth: {
+    user: null,
+    sendMagicLink: async () => ({ data: null, error: null }),
+    signOut: async () => {},
+    onAuthChange: () => () => {}
+  },
+  query: async () => ({ data: { profiles: [], entitlements: [] } }),
+  transact: async () => {}
+};
 
 // Export the schema for reference
 export { schema };
