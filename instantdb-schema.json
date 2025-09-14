@@ -1,30 +1,50 @@
 {
-  "profiles": {
-    "id": "string",
-    "username": "string",
-    "email": "string",
-    "display_name": "string",
-    "onboarding_complete": "boolean",
-    "weight": "number",
-    "height": "number",
-    "age": "number",
-    "gender": "string",
-    "target_weight": "number",
-    "target_date": "string",
-    "activity_level": "number",
-    "weight_loss_speed": "number",
-    "diet_exercise_ratio": "number",
-    "allergies": "string",
-    "created_at": "string",
-    "updated_at": "string"
+  "appId": "d10db7a8-30ac-4fdb-82a1-87cc0e993acd",
+  "collections": {
+    "profiles": {
+      "id": "string",
+      "username": "string",
+      "onboarding_complete": "boolean",
+      "created_at": "string",
+      "weight": "number",
+      "height": "number",
+      "age": "number",
+      "gender": "string",
+      "bodyFat": "number",
+      "activityLevel": "number",
+      "targetWeight": "number",
+      "targetDate": "string",
+      "dietExerciseRatio": "number",
+      "weightLossSpeed": "number",
+      "allergies": "string",
+      "reminderFrequency": "number",
+      "bmr": "number",
+      "tdee": "number",
+      "dailyCalorieTarget": "number",
+      "proteinTarget": "number",
+      "carbTarget": "number",
+      "fatTarget": "number",
+      "lastWeightLoggedAt": "string"
+    },
+    "entitlements": {
+      "user_id": "string",
+      "product_id": "string",
+      "provider": "string",
+      "active": "boolean",
+      "expires_at": "string",
+      "last_synced_at": "string"
+    }
   },
-  "entitlements": {
-    "id": "string",
-    "user_id": "string",
-    "product_id": "string",
-    "provider": "string",
-    "active": "boolean",
-    "expires_at": "string",
-    "last_synced_at": "string"
+  "permissions": {
+    "profiles": {
+      "view": "auth.id == data.id",
+      "update": "auth.id == data.id",
+      "insert": "auth.id == data.id"
+    },
+    "entitlements": {
+      "view": "auth.id == data.user_id",
+      "update": "auth.id == data.user_id",
+      "insert": "auth.id == data.user_id"
+    }
   }
 }

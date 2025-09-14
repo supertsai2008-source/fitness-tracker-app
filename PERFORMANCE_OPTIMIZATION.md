@@ -92,13 +92,16 @@ npm install @react-native-firebase/analytics
 
 ## 數據庫優化
 
-### 1. Supabase 查詢優化
+### 1. InstantDB 查詢優化
 ```typescript
-// 使用 select 限制返回字段
-const { data } = await supabase
-  .from('foods')
-  .select('id, name, kcal_per_100g')
-  .limit(20);
+// 使用 useQuery 限制返回字段
+const { data } = db.useQuery({
+  foods: {
+    $: {
+      limit: 20
+    }
+  }
+});
 ```
 
 ### 2. 本地存儲優化

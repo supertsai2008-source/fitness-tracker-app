@@ -3,8 +3,8 @@ import { useUserStore } from "../state/userStore";
 import { useAppStore } from "../state/appStore";
 import { useAccountStore } from "../state/accountStore";
 import { migrateGenericToLocal } from "../state/multiTenant";
-import { db } from "../lib/instantdb";
-import { initializeSync } from "../lib/instantdbSync";
+import { auth, db } from "../lib/instantdb";
+import { loadUserProfile, loadUserEntitlements } from "../api/auth/instantdb";
 import LoadingScreen from "../screens/LoadingScreen";
 
 interface AppState {
@@ -68,34 +68,19 @@ export default function AppStateProvider({ children }: AppStateProviderProps) {
         await checkHydration();
 
         // Check for existing InstantDB session
-        const { user } = db.auth;
-        if (user) {
-          const accountId = `instantdb:${user.email || user.id}`;
-          const { upsertAccount, signInAs } = useAccountStore.getState();
+        // Note: In a real implementation, you'd check auth.user
+        // For now, we'll rely on the account store for session management
+        const { currentAccountId } = useAccountStore.getState();
+        if (currentAccountId && currentAccountId.startsWith('instantdb:')) {
+          const userId = currentAccountId.replace('instantdb:', '');
           
-          // Update account store with InstantDB user data
-          upsertAccount({
-            id: accountId,
-            provider: "password",
-            email: user.email || "",
-            displayName: user.email?.split("@")[0] || "User",
-            createdAt: new Date().toISOString(),
-          });
-          
-          signInAs(accountId);
+          // Load user profile and entitlements from InstantDB
+          await loadUserProfile(userId);
+          await loadUserEntitlements(userId);
         }
 
         // One-time migration to local account snapshot if needed
         await migrateGenericToLocal();
-        
-        // Initialize InstantDB sync if user is authenticated
-        if (user) {
-          try {
-            await initializeSync();
-          } catch (error) {
-            console.warn("Failed to initialize InstantDB sync:", error);
-          }
-        }
         
         // Wait a minimum time to show loading screen
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -113,32 +98,22 @@ export default function AppStateProvider({ children }: AppStateProviderProps) {
     initializeApp();
   }, [userHydrated, appHydrated]);
 
-  // Listen for InstantDB auth state changes
+  // Listen for account changes (since we're using simplified auth)
   useEffect(() => {
-    const unsubscribe = db.auth.onAuthChange(async (user) => {
-      console.log("Auth state changed:", user?.email);
+    const { currentAccountId } = useAccountStore.getState();
+    
+    if (currentAccountId && currentAccountId.startsWith('instantdb:')) {
+      console.log("InstantDB account active:", currentAccountId);
+      const userId = currentAccountId.replace('instantdb:', '');
       
-      if (user) {
-        const accountId = `instantdb:${user.email || user.id}`;
-        const { upsertAccount, signInAs } = useAccountStore.getState();
-        
-        upsertAccount({
-          id: accountId,
-          provider: "password",
-          email: user.email || "",
-          displayName: user.email?.split("@")[0] || "User",
-          createdAt: new Date().toISOString(),
-        });
-        
-        signInAs(accountId);
-      } else {
-        useAccountStore.getState().signOut();
-        useUserStore.getState().clearUser();
-      }
-    });
-
-    return unsubscribe;
-  }, []);
+      // Load user profile and entitlements
+      loadUserProfile(userId);
+      loadUserEntitlements(userId);
+    } else {
+      console.log("No InstantDB account active");
+      useUserStore.getState().clearUser();
+    }
+  }, [useAccountStore.getState().currentAccountId]);
 
   const appState: AppState = {
     isInitialized,

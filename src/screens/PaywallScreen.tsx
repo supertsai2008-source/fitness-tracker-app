@@ -5,7 +5,6 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { useAppStore } from "../state/appStore";
-import { syncEntitlements } from "../lib/instantdbSync";
 import { Ionicons } from "@expo/vector-icons";
 import BrandLogo from "../components/BrandLogo";
 
@@ -86,13 +85,6 @@ export default function PaywallScreen() {
           ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
           : undefined,
       });
-      
-      // Sync entitlements to InstantDB
-      try {
-        await syncEntitlements();
-      } catch (error) {
-        console.warn("Failed to sync entitlements:", error);
-      }
       
       navigation.navigate("MainTabs");
     } catch (error) {

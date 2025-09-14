@@ -1,57 +1,51 @@
-// import { init } from '@instantdb/react-native';
+import { init } from '@instantdb/react-native';
 
-// Define the schema for our collections
-const schema = {
-  profiles: {
-    id: "string",
-    username: "string",
-    email: "string",
-    display_name: "string",
-    onboarding_complete: "boolean",
-    weight: "number",
-    height: "number",
-    age: "number",
-    gender: "string",
-    target_weight: "number",
-    target_date: "string",
-    activity_level: "number",
-    weight_loss_speed: "number",
-    diet_exercise_ratio: "number",
-    allergies: "string",
-    created_at: "string",
-    updated_at: "string"
-  },
-  entitlements: {
-    id: "string",
-    user_id: "string",
-    product_id: "string",
-    provider: "string",
-    active: "boolean",
-    expires_at: "string",
-    last_synced_at: "string"
-  }
-};
+// Initialize InstantDB client
+export const db = init({
+  appId: "d10db7a8-30ac-4fdb-82a1-87cc0e993acd",
+});
 
-// Initialize InstantDB client with the provided app ID and schema
-// export const db = init({ 
-//   appId: "d10db7a8-30ac-4fdb-82a1-87cc0e993acd",
-//   schema
-// });
+// Data model types for InstantDB
+export interface Profile {
+  id: string; // user ID
+  username: string;
+  onboarding_complete: boolean;
+  created_at: string;
+  // User data from current User interface
+  weight: number;
+  height: number;
+  age: number;
+  gender: "male" | "female";
+  bodyFat: number;
+  activityLevel: number;
+  targetWeight: number;
+  targetDate: string;
+  dietExerciseRatio: number;
+  weightLossSpeed: number;
+  allergies: string;
+  reminderFrequency: number;
+  bmr: number;
+  tdee: number;
+  dailyCalorieTarget: number;
+  proteinTarget: number;
+  carbTarget: number;
+  fatTarget: number;
+  lastWeightLoggedAt?: string;
+}
 
-// Temporary mock for build testing
-export const db = {
-  auth: {
-    user: null,
-    sendMagicLink: async () => ({ data: null, error: null }),
-    signOut: async () => {},
-    onAuthChange: () => () => {}
-  },
-  query: async () => ({ data: { profiles: [], entitlements: [] } }),
-  transact: async () => {}
-};
+export interface Entitlement {
+  user_id: string;
+  product_id: string;
+  provider: "revenuecat";
+  active: boolean;
+  expires_at: string | null;
+  last_synced_at: string;
+}
 
-// Export the schema for reference
-export { schema };
+// Auth helpers
+export const auth = db.auth;
 
-// Export the database instance
-export default db;
+// Query helpers
+export const useQuery = db.useQuery;
+export const transact = db.transact;
+export const tx = db.tx;

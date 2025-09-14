@@ -8,7 +8,7 @@ import { useUserStore } from "../state/userStore";
 import { useAppStore } from "../state/appStore";
 import ErrorText from "../components/ui/ErrorText";
 import * as Haptics from "expo-haptics";
-import { db } from "../lib/instantdb";
+import { signInWithEmail, registerWithEmail } from "../api/auth/instantdb";
 
 export default function EmailAuthScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -51,43 +51,60 @@ export default function EmailAuthScreen() {
     setLoading(true);
     try {
       if (mode === "login") {
-        // InstantDB uses magic link authentication
-        const { data, error } = await db.auth.sendMagicLink(email.trim().toLowerCase());
-        
-        if (error) throw error;
+        await signInWithEmail(email.trim().toLowerCase(), password);
         
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setSuccess("已發送登入連結到您的信箱！請檢查您的 Email 並點擊連結完成登入。");
+        setSuccess("登入成功！");
         
-        // Set pending email for verification
-        setPendingEmail(email.trim().toLowerCase());
-        setMode("verify");
+        // Check user profile and subscription status
+        const user = useUserStore.getState().user;
+        const sub = useAppStore.getState().subscription;
+        
+        setTimeout(() => {
+          if (!user) {
+            nav.reset({ index: 0, routes: [{ name: "Onboarding" }] });
+          } else if (!sub.isActive) {
+            nav.reset({ index: 0, routes: [{ name: "Paywall" }] });
+          } else {
+            nav.reset({ index: 0, routes: [{ name: "MainTabs" }] });
+          }
+        }, 1000);
         
       } else {
-        // InstantDB uses magic link authentication for registration too
-        const { data, error } = await db.auth.sendMagicLink(email.trim().toLowerCase());
-        
-        if (error) throw error;
+        await registerWithEmail(email.trim().toLowerCase(), password, displayName);
         
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setSuccess("已發送註冊連結到您的信箱！請檢查您的 Email 並點擊連結完成註冊。");
         
-        // Set pending email for verification
-        setPendingEmail(email.trim().toLowerCase());
-        setMode("verify");
+        // With InstantDB magic codes, user is immediately signed in
+        setSuccess("註冊成功！正在設定您的帳戶...");
+        setTimeout(() => {
+          nav.reset({ index: 0, routes: [{ name: "Onboarding" }] });
+        }, 1500);
       }
     } catch (e: any) {
       let errorMessage = "發生錯誤，請稍後再試";
       
-      // Handle specific InstantDB auth errors
-      if (e.message?.includes("Invalid email")) {
-        errorMessage = "請輸入有效的 Email 地址";
-      } else if (e.message?.includes("Email rate limit exceeded")) {
-        errorMessage = "發送郵件過於頻繁，請稍後再試";
-      } else if (e.message?.includes("User already exists")) {
+      // Handle specific authentication errors
+      if (e.message?.includes("Invalid login credentials")) {
+        errorMessage = "Email 或密碼不正確";
+      } else if (e.message?.includes("User already registered")) {
         errorMessage = "此 Email 已經註冊，請直接登入";
         setMode("login");
-      } else if (e.message?.includes("Network error")) {
+      } else if (e.message?.includes("Password should be at least")) {
+        errorMessage = "密碼至少需要 6 個字符";
+      } else if (e.message?.includes("Unable to validate email address")) {
+        errorMessage = "請輸入有效的 Email 地址";
+      } else if (e.message?.includes("Email not confirmed")) {
+        errorMessage = "請先驗證您的 Email 地址，然後再嘗試登入";
+      } else if (e.message?.includes("Email rate limit exceeded")) {
+        errorMessage = "發送郵件過於頻繁，請稍後再試";
+      } else if (e.message?.includes("Signup is disabled")) {
+        errorMessage = "目前暫停新用戶註冊，請稍後再試";
+      } else if (e.message?.includes("Invalid email")) {
+        errorMessage = "請輸入有效的 Email 地址";
+      } else if (e.message?.includes("Password is too weak")) {
+        errorMessage = "密碼強度不足，請使用更複雜的密碼";
+      } else if (e.message?.includes("Network request failed")) {
         errorMessage = "網絡連接失敗，請檢查您的網絡連接";
       } else if (e.message?.includes("timeout")) {
         errorMessage = "請求超時，請稍後再試";
@@ -101,25 +118,7 @@ export default function EmailAuthScreen() {
     }
   };
 
-  const resendVerificationEmail = async () => {
-    if (!pendingEmail) return;
-    
-    setLoading(true);
-    setError(undefined);
-    
-    try {
-      const { data, error } = await db.auth.sendMagicLink(pendingEmail);
-      
-      if (error) throw error;
-      
-      setSuccess("驗證郵件已重新發送！請檢查您的信箱。");
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e: any) {
-      setError(e?.message || "重新發送失敗，請稍後再試");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Email verification not needed with InstantDB magic codes
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -245,7 +244,10 @@ export default function EmailAuthScreen() {
           {mode === "verify" && (
             <View className="space-y-3">
               <Pressable 
-                onPress={resendVerificationEmail} 
+                onPress={() => {
+                  // Email verification not needed with InstantDB magic codes
+                  setSuccess("InstantDB 使用魔法代碼，無需郵件驗證");
+                }} 
                 disabled={loading}
                 className={`w-full py-4 rounded-2xl items-center ${
                   loading ? "bg-slate-300" : "bg-blue-600"

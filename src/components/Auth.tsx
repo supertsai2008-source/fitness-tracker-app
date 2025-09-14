@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { db } from "../lib/instantdb";
+import { signInWithEmail, registerWithEmail } from "../api/auth/instantdb";
 
 export default function Auth() {
   const insets = useSafeAreaInsets();
@@ -10,13 +10,12 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const signInWithEmail = async () => {
+  const handleSignIn = async () => {
     setLoading(true);
     setMessage(null);
     try {
-      const { data, error } = await db.auth.sendMagicLink(email);
-      if (error) setMessage("登入失敗，請稍後再試");
-      else setMessage("已發送登入連結到您的信箱！");
+      await signInWithEmail(email, password);
+      setMessage("登入成功");
     } catch (e: any) {
       setMessage(e?.message || "登入失敗");
     } finally {
@@ -24,13 +23,12 @@ export default function Auth() {
     }
   };
 
-  const signUpWithEmail = async () => {
+  const handleSignUp = async () => {
     setLoading(true);
     setMessage(null);
     try {
-      const { data, error } = await db.auth.sendMagicLink(email);
-      if (error) setMessage("註冊失敗，請稍後再試");
-      else setMessage("已發送註冊連結到您的信箱！");
+      await registerWithEmail(email, password);
+      setMessage("註冊成功");
     } catch (e: any) {
       setMessage(e?.message || "註冊失敗");
     } finally {
@@ -66,10 +64,10 @@ export default function Auth() {
           />
         </View>
         <View className="flex-row">
-          <Pressable onPress={signInWithEmail} disabled={loading} className={`flex-1 py-3 rounded-xl ${loading ? "bg-slate-300" : "bg-black"} mr-3`}>
+          <Pressable onPress={handleSignIn} disabled={loading} className={`flex-1 py-3 rounded-xl ${loading ? "bg-slate-300" : "bg-black"} mr-3`}>
             <Text className="text-white text-center font-semibold">登入</Text>
           </Pressable>
-          <Pressable onPress={signUpWithEmail} disabled={loading} className={`flex-1 py-3 rounded-xl ${loading ? "bg-slate-300" : "bg-gray-800"}`}>
+          <Pressable onPress={handleSignUp} disabled={loading} className={`flex-1 py-3 rounded-xl ${loading ? "bg-slate-300" : "bg-gray-800"}`}>
             <Text className="text-white text-center font-semibold">註冊</Text>
           </Pressable>
         </View>

@@ -1,28 +1,50 @@
 {
   "expo": {
-    "name": "vibecode",
-    "slug": "bite-ai-2",
+    "name": "VibeCode - Weight Loss Tracker",
+    "slug": "vibecode-weight-tracker",
     "scheme": "vibecode",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vibecode.copyoffattrack",
-      "buildNumber": "14",
+      "bundleIdentifier": "com.vibecode.weighttracker",
+      "buildNumber": "9",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCalendarsUsageDescription": "VibeCode uses calendar access to help you track your fitness schedule and set weight loss reminders.",
+        "NSContactsUsageDescription": "VibeCode can access your contacts to help you share your progress with friends and family who support your weight loss journey.",
+        "NSCameraUsageDescription": "VibeCode uses the camera to take photos of your meals for food analysis and progress tracking.",
+        "NSLocationWhenInUseUsageDescription": "VibeCode uses location services to provide location-based fitness recommendations and track your workout locations."
       }
     },
     "android": {
-      "edgeToEdgeEnabled": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "35710b49-ba8d-4a1d-bbdd-5b552cdefecd"
+      "edgeToEdgeEnabled": true,
+      "package": "com.vibecode.weighttracker",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       }
     },
-    "owner": "franktsai"
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "fe32f084-0b35-49e5-b04d-77992b9284f1"
+      }
+    }
   }
 }

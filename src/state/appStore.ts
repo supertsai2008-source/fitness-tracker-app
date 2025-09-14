@@ -14,6 +14,7 @@ interface AppState {
   activateSubscription: (plan: "monthly" | "yearly") => void;
   cancelSubscription: () => void;
   setHasHydrated: (hasHydrated: boolean) => void;
+  resetApp: () => void;
 }
 
 const defaultSettings: AppSettings = {
