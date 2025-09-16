@@ -25,7 +25,10 @@
         "NSCalendarsUsageDescription": "VibeCode uses calendar access to help you track your fitness schedule and set weight loss reminders.",
         "NSContactsUsageDescription": "VibeCode can access your contacts to help you share your progress with friends and family who support your weight loss journey.",
         "NSCameraUsageDescription": "VibeCode uses the camera to take photos of your meals for food analysis and progress tracking.",
-        "NSLocationWhenInUseUsageDescription": "VibeCode uses location services to provide location-based fitness recommendations and track your workout locations."
+        "NSLocationWhenInUseUsageDescription": "VibeCode uses location services to provide location-based fitness recommendations and track your workout locations.",
+        "NSMicrophoneUsageDescription": "VibeCode uses the microphone to analyze voice notes and support video-based coaching sessions.",
+        "NSPhotoLibraryUsageDescription": "VibeCode needs photo library access so you can upload meal photos for analysis and track visual progress.",
+        "NSPhotoLibraryAddUsageDescription": "VibeCode saves processed photos back to your library when you choose to export them."
       }
     },
     "android": {
@@ -40,7 +43,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [],
+    "plugins": [
+      "react-native-purchases",
+      "react-native-vision-camera"
+    ],
     "extra": {
       "eas": {
         "projectId": "fe32f084-0b35-49e5-b04d-77992b9284f1"

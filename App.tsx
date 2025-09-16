@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, Modal, TextInput } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("初始化中...");
   const [currentScreen, setCurrentScreen] = useState("home");
   const [weight, setWeight] = useState(0);
+  const [showWeightPrompt, setShowWeightPrompt] = useState(false);
+  const [weightInput, setWeightInput] = useState("");
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -36,16 +37,8 @@ export default function App() {
   };
 
   const handleWeightInput = () => {
-    Alert.prompt(
-      "輸入體重",
-      "請輸入你的體重 (kg):",
-      (text) => {
-        if (text) {
-          setWeight(parseFloat(text));
-          Alert.alert("成功", `體重已記錄: ${text} kg`);
-        }
-      }
-    );
+    setWeightInput("");
+    setShowWeightPrompt(true);
   };
 
   if (!isReady) {
@@ -100,6 +93,47 @@ export default function App() {
               <Text style={styles.weightText}>當前體重: {weight} kg</Text>
             )}
           </View>
+          {/* Cross-platform weight input modal */}
+          <Modal
+            visible={showWeightPrompt}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowWeightPrompt(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalCard}>
+                <Text style={styles.modalTitle}>輸入體重</Text>
+                <Text style={styles.modalSubtitle}>請輸入你的體重 (kg)</Text>
+                <TextInput
+                  value={weightInput}
+                  onChangeText={setWeightInput}
+                  keyboardType="numeric"
+                  placeholder="70"
+                  style={styles.modalInput}
+                />
+                <View style={styles.modalActions}>
+                  <TouchableOpacity style={[styles.button, { backgroundColor: '#E5E7EB' }]} onPress={() => setShowWeightPrompt(false)}>
+                    <Text style={[styles.buttonText, { color: '#111827' }]}>取消</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => {
+                      const val = parseFloat(weightInput);
+                      if (!isNaN(val) && val > 0) {
+                        setWeight(val);
+                        setShowWeightPrompt(false);
+                        Alert.alert("成功", `體重已記錄: ${val} kg`);
+                      } else {
+                        Alert.alert("無效輸入", "請輸入有效的數值");
+                      }
+                    }}
+                  >
+                    <Text style={styles.buttonText}>儲存</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
           <StatusBar style="auto" />
         </SafeAreaView>
       </SafeAreaProvider>
@@ -203,5 +237,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    marginBottom: 12,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });

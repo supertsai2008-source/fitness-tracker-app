@@ -1,4 +1,4 @@
-import { auth, db, Profile, Entitlement } from "../../lib/instantdb";
+import { db, Profile, Entitlement } from "../../lib/instantdb";
 import { useAccountStore } from "../../state/accountStore";
 import { useUserStore } from "../../state/userStore";
 import { useAppStore } from "../../state/appStore";
@@ -75,10 +75,7 @@ export async function signInWithEmail(email: string, password: string) {
     // Load user data for this account
     await loadAllSnapshots(accountId);
     signInAs(accountId);
-    
-    // Load profile and entitlements from InstantDB
-    await loadUserProfile(mockUserId);
-    await loadUserEntitlements(mockUserId);
+    // Profile and entitlements will be synced by AppStateProvider via hooks
     
     return { user: { id: mockUserId, email: email.trim().toLowerCase() } };
   } catch (error: any) {
@@ -160,56 +157,10 @@ export async function createUserProfile(userId: string, userData: {
 /**
  * Load user profile from InstantDB
  */
-export async function loadUserProfile(userId: string) {
-  try {
-    const { data } = await db.useQuery({
-      profiles: {
-        $: {
-          where: { id: userId }
-        }
-      }
-    });
-
-    if (data && data.profiles && data.profiles.length > 0) {
-      const profile = data.profiles[0];
-      const { setUser, completeOnboarding } = useUserStore.getState();
-      
-      setUser({
-        id: profile.id,
-        gender: profile.gender,
-        age: profile.age,
-        height: profile.height,
-        weight: profile.weight,
-        bodyFat: profile.bodyFat,
-        activityLevel: profile.activityLevel,
-        targetWeight: profile.targetWeight,
-        targetDate: profile.targetDate,
-        dietExerciseRatio: profile.dietExerciseRatio,
-        weightLossSpeed: profile.weightLossSpeed,
-        allergies: profile.allergies,
-        reminderFrequency: profile.reminderFrequency,
-        createdAt: profile.created_at,
-        lastWeightLoggedAt: profile.lastWeightLoggedAt,
-        // Calculated fields will be set by the store
-        bmr: profile.bmr,
-        tdee: profile.tdee,
-        dailyCalorieTarget: profile.dailyCalorieTarget,
-        proteinTarget: profile.proteinTarget,
-        carbTarget: profile.carbTarget,
-        fatTarget: profile.fatTarget,
-      });
-
-      if (profile.onboarding_complete) {
-        completeOnboarding();
-      }
-
-      console.log("User profile loaded from InstantDB");
-    } else {
-      console.log("No user profile found in InstantDB");
-    }
-  } catch (error) {
-    console.error("Failed to load user profile:", error);
-  }
+export async function loadUserProfile(_userId: string) {
+  // Deprecated: use AppStateProvider hook-based loading
+  console.warn("loadUserProfile is deprecated. Data loads via AppStateProvider hooks.");
+  return;
 }
 
 /**
@@ -231,45 +182,10 @@ export async function updateUserProfile(userId: string, updates: Partial<Profile
 /**
  * Load user entitlements from InstantDB
  */
-export async function loadUserEntitlements(userId: string) {
-  try {
-    const { data } = await db.useQuery({
-      entitlements: {
-        $: {
-          where: { user_id: userId }
-        }
-      }
-    });
-
-    if (data && data.entitlements && data.entitlements.length > 0) {
-      const activeEntitlement = data.entitlements.find(e => 
-        e.active && (!e.expires_at || new Date(e.expires_at) > new Date())
-      );
-
-      if (activeEntitlement) {
-        useUserStore.getState().setSubscriptionStatus(true);
-        useAppStore.getState().updateSubscription({
-          isActive: true,
-          plan: activeEntitlement.product_id.includes("yearly") ? "yearly" : "monthly",
-          expiresAt: activeEntitlement.expires_at,
-        });
-      } else {
-        useUserStore.getState().setSubscriptionStatus(false);
-        useAppStore.getState().updateSubscription({
-          isActive: false,
-          plan: null,
-          expiresAt: undefined,
-        });
-      }
-
-      console.log("User entitlements loaded from InstantDB");
-    } else {
-      console.log("No entitlements found in InstantDB");
-      useUserStore.getState().setSubscriptionStatus(false);
-    }
-  } catch (error) {
-    console.error("Failed to load user entitlements:", error);
-  }
+export async function loadUserEntitlements(_userId: string) {
+  // Deprecated: use AppStateProvider hook-based loading
+  console.warn("loadUserEntitlements is deprecated. Data loads via AppStateProvider hooks.");
+  return;
 }
 
 /**

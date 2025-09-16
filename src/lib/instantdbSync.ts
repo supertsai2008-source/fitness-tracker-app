@@ -61,62 +61,9 @@ export async function syncUserProfile(): Promise<void> {
  * Load user profile from InstantDB
  */
 export async function loadUserProfile(): Promise<void> {
-  try {
-    const { currentAccountId } = useAccountStore.getState();
-    if (!currentAccountId || !currentAccountId.startsWith('instantdb:')) {
-      return;
-    }
-    
-    const userId = currentAccountId.replace('instantdb:', '');
-
-    const { data } = await db.useQuery({
-      profiles: {
-        $: {
-          where: { id: userId }
-        }
-      }
-    });
-
-    if (data && data.profiles && data.profiles.length > 0) {
-      const profile = data.profiles[0];
-      const { setUser, completeOnboarding } = useUserStore.getState();
-      
-      setUser({
-        id: profile.id,
-        gender: profile.gender,
-        age: profile.age,
-        height: profile.height,
-        weight: profile.weight,
-        bodyFat: profile.bodyFat,
-        activityLevel: profile.activityLevel,
-        targetWeight: profile.targetWeight,
-        targetDate: profile.targetDate,
-        dietExerciseRatio: profile.dietExerciseRatio,
-        weightLossSpeed: profile.weightLossSpeed,
-        allergies: profile.allergies,
-        reminderFrequency: profile.reminderFrequency,
-        createdAt: profile.created_at,
-        lastWeightLoggedAt: profile.lastWeightLoggedAt,
-        // Calculated fields will be set by the store
-        bmr: profile.bmr,
-        tdee: profile.tdee,
-        dailyCalorieTarget: profile.dailyCalorieTarget,
-        proteinTarget: profile.proteinTarget,
-        carbTarget: profile.carbTarget,
-        fatTarget: profile.fatTarget,
-      });
-
-      if (profile.onboarding_complete) {
-        completeOnboarding();
-      }
-
-      console.log("User profile loaded from InstantDB");
-    } else {
-      console.log("No user profile found in InstantDB - using local data");
-    }
-  } catch (error) {
-    console.error("Failed to load user profile:", error);
-  }
+  // Deprecated: handled in AppStateProvider via hooks
+  console.warn("loadUserProfile() in instantdbSync is deprecated.");
+  return;
 }
 
 /**
@@ -187,9 +134,7 @@ export async function fullSync(): Promise<void> {
 export async function initializeSync(): Promise<void> {
   try {
     console.log("Initializing data sync...");
-    
-    await loadUserProfile();
-    
+    // Profile hydration handled by AppStateProvider
     console.log("Data sync initialized");
   } catch (error) {
     console.error("Failed to initialize sync:", error);

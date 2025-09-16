@@ -1,7 +1,13 @@
 # 📱 iOS App Store Upload Guide
 
 ## 🎯 Overview
-This guide will help you upload your VibeCode Weight Loss Tracker app to the iOS App Store using your existing successful build.
+This guide will help you upload your VibeCode Weight Loss Tracker app to the iOS App Store 
+
+
+
+
+
+using your existing successful build.
 
 ## ✅ Prerequisites
 - ✅ iOS build completed successfully (Build ID: `62eab638-d05d-44b6-ad5e-2196dd1abfbe`)

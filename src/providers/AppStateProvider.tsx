@@ -1,10 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useUserStore } from "../state/userStore";
 import { useAppStore } from "../state/appStore";
 import { useAccountStore } from "../state/accountStore";
 import { migrateGenericToLocal } from "../state/multiTenant";
-import { auth, db } from "../lib/instantdb";
-import { loadUserProfile, loadUserEntitlements } from "../api/auth/instantdb";
+import { useQuery } from "../lib/instantdb";
 import LoadingScreen from "../screens/LoadingScreen";
 
 interface AppState {
@@ -67,18 +66,6 @@ export default function AppStateProvider({ children }: AppStateProviderProps) {
         // Wait for hydration or timeout
         await checkHydration();
 
-        // Check for existing InstantDB session
-        // Note: In a real implementation, you'd check auth.user
-        // For now, we'll rely on the account store for session management
-        const { currentAccountId } = useAccountStore.getState();
-        if (currentAccountId && currentAccountId.startsWith('instantdb:')) {
-          const userId = currentAccountId.replace('instantdb:', '');
-          
-          // Load user profile and entitlements from InstantDB
-          await loadUserProfile(userId);
-          await loadUserEntitlements(userId);
-        }
-
         // One-time migration to local account snapshot if needed
         await migrateGenericToLocal();
         
@@ -98,22 +85,77 @@ export default function AppStateProvider({ children }: AppStateProviderProps) {
     initializeApp();
   }, [userHydrated, appHydrated]);
 
-  // Listen for account changes (since we're using simplified auth)
+  // Track account via selector and hydrate InstantDB data using hooks
+  const currentAccountId = useAccountStore((s) => s.currentAccountId);
+  const instantUserId = useMemo(() => (
+    currentAccountId && currentAccountId.startsWith('instantdb:')
+      ? currentAccountId.replace('instantdb:', '')
+      : null
+  ), [currentAccountId]);
+
+  // Always call hooks; query for a non-existent id if not active
+  const profileQuery = useMemo(() => ({
+    profiles: { $: { where: { id: instantUserId || '__none__' } } }
+  }), [instantUserId]);
+  const entitlementsQuery = useMemo(() => ({
+    entitlements: { $: { where: { user_id: instantUserId || '__none__' } } }
+  }), [instantUserId]);
+
+  const { data: profileData } = useQuery(profileQuery as any);
+  const { data: entData } = useQuery(entitlementsQuery as any);
+
   useEffect(() => {
-    const { currentAccountId } = useAccountStore.getState();
-    
-    if (currentAccountId && currentAccountId.startsWith('instantdb:')) {
-      console.log("InstantDB account active:", currentAccountId);
-      const userId = currentAccountId.replace('instantdb:', '');
-      
-      // Load user profile and entitlements
-      loadUserProfile(userId);
-      loadUserEntitlements(userId);
-    } else {
-      console.log("No InstantDB account active");
+    if (!instantUserId) {
+      // No InstantDB account active; clear user
       useUserStore.getState().clearUser();
+      return;
     }
-  }, [useAccountStore.getState().currentAccountId]);
+
+    const prof = (profileData as any)?.profiles?.[0];
+    if (prof) {
+      const { setUser, completeOnboarding } = useUserStore.getState();
+      setUser({
+        id: prof.id,
+        gender: prof.gender,
+        age: prof.age,
+        height: prof.height,
+        weight: prof.weight,
+        bodyFat: prof.bodyFat,
+        activityLevel: prof.activityLevel,
+        targetWeight: prof.targetWeight,
+        targetDate: prof.targetDate,
+        dietExerciseRatio: prof.dietExerciseRatio,
+        weightLossSpeed: prof.weightLossSpeed,
+        allergies: prof.allergies,
+        reminderFrequency: prof.reminderFrequency,
+        createdAt: prof.created_at,
+        lastWeightLoggedAt: prof.lastWeightLoggedAt,
+        bmr: prof.bmr,
+        tdee: prof.tdee,
+        dailyCalorieTarget: prof.dailyCalorieTarget,
+        proteinTarget: prof.proteinTarget,
+        carbTarget: prof.carbTarget,
+        fatTarget: prof.fatTarget,
+      });
+      if (prof.onboarding_complete) completeOnboarding();
+    }
+
+    const ents = (entData as any)?.entitlements || [];
+    if (Array.isArray(ents)) {
+      const activeEnt = ents.find((e: any) => e.active && (!e.expires_at || new Date(e.expires_at) > new Date()));
+      if (activeEnt) {
+        useUserStore.getState().setSubscriptionStatus(true);
+        useAppStore.getState().updateSubscription({
+          isActive: true,
+          plan: activeEnt.product_id?.includes('yearly') ? 'yearly' : 'monthly',
+          expiresAt: activeEnt.expires_at || undefined,
+        });
+      } else {
+        useUserStore.getState().setSubscriptionStatus(false);
+        useAppStore.getState().updateSubscription({ isActive: false, plan: null, expiresAt: undefined });
+      }
+    }
+  }, [instantUserId, profileData, entData]);
 
   const appState: AppState = {
     isInitialized,
